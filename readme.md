@@ -6,7 +6,7 @@ Write log to ClickHouse
 
 ### Explore via grafana
 
-[![explore](https://github.com/zlzforever/Serilog.Sinks.ClickHouse/blob/main/explore.png)]
+![explore](https://github.com/zlzforever/Serilog.Sinks.ClickHouse/blob/main/explore.png)
 
 ### Create CK log table
 
