@@ -34,4 +34,9 @@ public class ClickHouseOptions
     ///
     /// </summary>
     public string? Application { get; set; }
+
+    /// <summary>
+    ///
+    /// </summary>
+    public bool IncludeRaw { get; set; }
 }

@@ -34,7 +34,7 @@ public class ClickHouseSink : IBatchedLogEventSink
         {
             foreach (var logEvent in batch)
             {
-                var ckEvent = new ClickHouseLogEvent(_options.Application, logEvent);
+                var ckEvent = new ClickHouseLogEvent(_options.Application, logEvent, _options.IncludeRaw);
                 bodyBuilder.Append(ckEvent).Append(' ').AppendLine();
             }
 

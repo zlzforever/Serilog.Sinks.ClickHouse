@@ -27,15 +27,17 @@ public class ClickHouseLogEvent
     /// <param name="logEvent">
     /// A log event.
     /// </param>
-    public ClickHouseLogEvent(string? application, LogEvent logEvent)
+    /// <param name="includeRaw"></param>
+    public ClickHouseLogEvent(string? application, LogEvent logEvent, bool includeRaw)
     {
         _logEvent = logEvent ?? throw new ArgumentNullException(nameof(logEvent));
+
         Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        Level = GetLevel(logEvent.Level);
-        SpanId = logEvent.SpanId?.ToString();
-        TraceId = logEvent.TraceId?.ToString();
-        Message = logEvent.RenderMessage();
         Application = application;
+        Level = GetLevel(logEvent.Level);
+        Message = logEvent.RenderMessage();
+        TraceId = logEvent.TraceId?.ToString();
+        SpanId = logEvent.SpanId?.ToString();
         SourceContext = logEvent.Properties.TryGetValue("SourceContext", out var sourceContext)
             ? (sourceContext as ScalarValue)?.Value?.ToString()
             : null;
@@ -53,6 +55,7 @@ public class ClickHouseLogEvent
         NumberKeys = new List<dynamic>();
         NumberValues = new List<dynamic>();
 
+        var dict = includeRaw ? null : new Dictionary<string, dynamic>();
         foreach (var propertyValue in logEvent.Properties)
         {
             if (propertyValue.Value is ScalarValue scalarValue)
@@ -62,34 +65,61 @@ public class ClickHouseLogEvent
                     continue;
                 }
 
+                object? vvv;
                 switch (scalarValue.Value)
                 {
                     case bool b:
                         AddBool(propertyValue.Key, b);
+                        vvv = b;
                         break;
                     case string s:
                         AddString(propertyValue.Key, s);
+                        vvv = s;
                         break;
                     default:
                     {
                         if (IsNumeric(scalarValue.Value))
                         {
                             AddNumber(propertyValue.Key, scalarValue.Value);
+                            vvv = scalarValue.Value;
                         }
                         else if (scalarValue.Value.GetType().IsValueType)
                         {
-                            AddString(propertyValue.Key, scalarValue.Value.ToString() ?? "");
+                            var vv = scalarValue.Value.ToString() ?? "";
+                            AddString(propertyValue.Key, vv);
+                            vvv = vv;
                         }
                         else
                         {
-                            AddString(propertyValue.Key, JsonSerializer.Serialize(scalarValue.Value,
-                                JsonSerializerOptions));
+                            var vv = JsonSerializer.Serialize(scalarValue.Value,
+                                JsonSerializerOptions);
+                            AddString(propertyValue.Key, vv);
+                            vvv = vv;
                         }
 
                         break;
                     }
                 }
+
+                dict?.Add(propertyValue.Key, vvv);
             }
+            else
+            {
+                AddString(propertyValue.Key, propertyValue.Value.ToString());
+            }
+        }
+
+        if (dict != null)
+        {
+            if (!dict.ContainsKey("MessageTemplate"))
+            {
+                dict.Add("MessageTemplate", logEvent.MessageTemplate.Text);
+            }
+        }
+
+        if (includeRaw)
+        {
+            Raw = JsonSerializer.Serialize(dict, JsonSerializerOptions);
         }
     }
 
@@ -193,6 +223,12 @@ public class ClickHouseLogEvent
     /// </summary>
     [JsonPropertyName("exception_stacktrace")]
     public string? ExceptionStackTrace { get; }
+
+    /// <summary>
+    ///
+    /// </summary>
+    [JsonPropertyName("raw")]
+    public string? Raw { get; }
 
     /// <summary>
     ///

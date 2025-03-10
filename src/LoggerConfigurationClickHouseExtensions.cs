@@ -44,8 +44,10 @@ public static class LoggerConfigurationClickHouseExtensions
     ///     `number_values`        Array(Float64),
     ///     `bool_keys`            Array(String),
     ///     `bool_values`          Array(bool),
+    ///     `raw`                  String,
     ///     -- 建立索引加速低命中率内容的查询
     ///     INDEX idx_string_values `string_values` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
+    ///     INDEX idx_raw raw TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1,
     ///     INDEX idx_message `message` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
     ///     INDEX idx_exception_message `exception_message` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
     ///     INDEX idx_exception_stacktrace `exception_stacktrace` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2
@@ -63,6 +65,7 @@ public static class LoggerConfigurationClickHouseExtensions
         string user,
         string key,
         string? application,
+        bool includeRaw = false,
         TimeSpan? period = null,
         int batchSizeLimit = DefaultBatchSizeLimit,
         int queueLimit = DefaultQueueLimit,
@@ -75,7 +78,8 @@ public static class LoggerConfigurationClickHouseExtensions
             Table = table,
             User = user,
             Key = key,
-            EndpointAddr = endpointAddr
+            EndpointAddr = endpointAddr,
+            IncludeRaw = includeRaw
         };
         var sink = new ClickHouseSink(options);
         var batchingOptions = new BatchingOptions
