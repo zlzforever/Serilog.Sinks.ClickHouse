@@ -29,6 +29,6 @@
     <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0"/>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+    <None Include="..\LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>
