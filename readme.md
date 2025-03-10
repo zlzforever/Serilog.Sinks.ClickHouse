@@ -2,7 +2,7 @@
 
 Write log to ClickHouse
 
-[![Build Status](https://dev.azure.com/zlzforever/cerberus/_apis/build/status/zlzforever.MSFramework?branchName=master)](https://dev.azure.com/zlzforever/cerberus/_build/latest?definitionId=10&branchName=master)
+[![.NET](https://github.com/zlzforever/Serilog.Sinks.ClickHouse/actions/workflows/dotnet.yml/badge.svg)](https://github.com/zlzforever/Serilog.Sinks.ClickHouse/actions/workflows/dotnet.yml)
 
 ### Explore via grafana
 
