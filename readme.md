@@ -4,6 +4,10 @@ Write log to ClickHouse
 
 [![Build Status](https://dev.azure.com/zlzforever/cerberus/_apis/build/status/zlzforever.MSFramework?branchName=master)](https://dev.azure.com/zlzforever/cerberus/_build/latest?definitionId=10&branchName=master)
 
+### Explore via grafana
+
+[![expore](https://github.com/zlzforever/Serilog.Sinks.ClickHouse/blob/main/explore.png)
+
 ### Create CK log table
 
 ``` sql
