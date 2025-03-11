@@ -13,16 +13,16 @@ Write log to ClickHouse
 ``` sql
 create table if not exists application_log
 (
-    _timestamp             DateTime64(3) DEFAULT now() CODEC (DoubleDelta, LZ4),
+    _timestamp             DateTime64(3) CODEC (DoubleDelta, LZ4),
     application LowCardinality(String),
     source_context         String,
     -- 日志级别
     `level` LowCardinality(String),
     -- 键值使用一对 Array，查询效率相比 Map 会有很大提升,
-    `message`              String        DEFAULT '',
-    `exception_type`       String        DEFAULT '',
-    `exception_message`    String        DEFAULT '',
-    `exception_stacktrace` String        DEFAULT '',
+    `message`              String DEFAULT '',
+    `exception_type`       String DEFAULT '',
+    `exception_message`    String DEFAULT '',
+    `exception_stacktrace` String DEFAULT '',
     trace_id Nullable (String) CODEC (ZSTD(1)),
     span_id Nullable (String) CODEC (ZSTD(1)),
     `string_keys`          Array(String),
@@ -31,8 +31,10 @@ create table if not exists application_log
     `number_values`        Array(Float64),
     `bool_keys`            Array(String),
     `bool_values`          Array(bool),
+    `raw`                  String,
     -- 建立索引加速低命中率内容的查询
     INDEX idx_string_values `string_values` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
+    INDEX idx_raw raw TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1,
     INDEX idx_message `message` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
     INDEX idx_exception_message `exception_message` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
     INDEX idx_exception_stacktrace `exception_stacktrace` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2
@@ -75,7 +77,8 @@ create table if not exists application_log
           "table": "application_log",
           "application": "ordering-api",
           "user": "default",
-          "key": "xxxxx"
+          "key": "xxxxx",
+          "includeRaw": true
         }
       }
     ]
