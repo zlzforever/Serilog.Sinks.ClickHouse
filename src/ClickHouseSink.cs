@@ -17,12 +17,6 @@ public class ClickHouseSink : IBatchedLogEventSink, IDisposable
     private readonly ApplicationLogFormatter _textFormatter;
 
     /// <summary>
-    /// 
-    /// </summary>
-    private const string QueryString =
-        "?query=INSERT+INTO+application_log_test+FORMAT+JSONEachRow+SETTINGS+async_insert=1";
-
-    /// <summary>
     ///
     /// </summary>
     public ClickHouseSink(ClickHouseOptions options)
@@ -30,7 +24,7 @@ public class ClickHouseSink : IBatchedLogEventSink, IDisposable
         _options = options;
         _textFormatter = new ApplicationLogFormatter(options.Application);
         var endpoint = new Uri(options.EndpointAddr);
-        _uri = $"{endpoint}{QueryString}";
+        _uri = $"{endpoint}?query=INSERT+INTO+{options.Table}+FORMAT+JSONEachRow";
         _httpClient =
             new HttpClient(
                 new DefaultHttpClientHandler(options.User, options.Key, options.Database,
@@ -135,7 +129,8 @@ public class ClickHouseSink : IBatchedLogEventSink, IDisposable
                             ORDER BY (application, _timestamp)
                             SETTINGS index_granularity = 8192, min_bytes_for_wide_part = 104857600;
                     """;
-        _httpClient.PostAsync(_options.EndpointAddr,
-            new StringContent(sql, Encoding.UTF8, "plain/text"));
+        var resp = _httpClient.PostAsync(_options.EndpointAddr,
+            new StringContent(sql, Encoding.UTF8, "plain/text")).GetAwaiter().GetResult();
+        resp.EnsureSuccessStatusCode();
     }
 }
