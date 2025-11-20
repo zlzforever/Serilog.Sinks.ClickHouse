@@ -1,5 +1,8 @@
+using System.Runtime.CompilerServices;
 using Serilog.Configuration;
 using Serilog.Events;
+
+[assembly: InternalsVisibleTo("Serilog.Sinks.Clickhouse.Tests")]
 
 namespace Serilog.Sinks.ClickHouse;
 
@@ -24,39 +27,22 @@ public static class LoggerConfigurationClickHouseExtensions
     public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// create table if not exists application_log
-    /// (
-    ///     _timestamp             DateTime64(3) DEFAULT now() CODEC (DoubleDelta, LZ4),
-    ///     application LowCardinality(String),
-    ///     source_context         String,
-    ///     -- 日志级别
-    ///     `level` LowCardinality(String),
-    ///     -- 键值使用一对 Array，查询效率相比 Map 会有很大提升,
-    ///     `message`              String        DEFAULT '',
-    ///     `exception_type`       String        DEFAULT '',
-    ///     `exception_message`    String        DEFAULT '',
-    ///     `exception_stacktrace` String        DEFAULT '',
-    ///     trace_id Nullable (String) CODEC (ZSTD(1)),
-    ///     span_id Nullable (String) CODEC (ZSTD(1)),
-    ///     `string_keys`          Array(String),
-    ///     `string_values`        Array(String),
-    ///     `number_keys`          Array(String),
-    ///     `number_values`        Array(Float64),
-    ///     `bool_keys`            Array(String),
-    ///     `bool_values`          Array(bool),
-    ///     `raw`                  String,
-    ///     -- 建立索引加速低命中率内容的查询
-    ///     INDEX idx_string_values `string_values` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
-    ///     INDEX idx_raw raw TYPE tokenbf_v1(30720, 2, 0) GRANULARITY 1,
-    ///     INDEX idx_message `message` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
-    ///     INDEX idx_exception_message `exception_message` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2,
-    ///     INDEX idx_exception_stacktrace `exception_stacktrace` TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 2
-    /// )
-    ///     ENGINE = MergeTree
-    ///         PARTITION BY toYYYYMMDD(_timestamp)
-    ///         ORDER BY (application, _timestamp)
-    ///         SETTINGS index_granularity = 8192;
+    /// 
     /// </summary>
+    /// <param name="loggerConfiguration"></param>
+    /// <param name="endpointAddr"></param>
+    /// <param name="database"></param>
+    /// <param name="table"></param>
+    /// <param name="user"></param>
+    /// <param name="key"></param>
+    /// <param name="application"></param>
+    /// <param name="period"></param>
+    /// <param name="batchSizeLimit"></param>
+    /// <param name="queueLimit"></param>
+    /// <param name="restrictedToMinimumLevel"></param>
+    /// <param name="timeout"></param>
+    /// <param name="skipServerCertificateValidation"></param>
+    /// <returns></returns>
     public static LoggerConfiguration ClickHouse(
         this LoggerSinkConfiguration loggerConfiguration,
         string endpointAddr,
@@ -64,24 +50,18 @@ public static class LoggerConfigurationClickHouseExtensions
         string table,
         string user,
         string key,
-        string? application,
-        bool includeRaw = false,
+        string? application = null,
         TimeSpan? period = null,
         int batchSizeLimit = DefaultBatchSizeLimit,
         int queueLimit = DefaultQueueLimit,
-        LogEventLevel restrictedToMinimumLevel = LogEventLevel.Verbose)
+        LogEventLevel restrictedToMinimumLevel = LogEventLevel.Verbose, int timeout = 30,
+        bool skipServerCertificateValidation = false)
     {
-        var options = new ClickHouseOptions
-        {
-            Application = application,
-            Database = database,
-            Table = table,
-            User = user,
-            Key = key,
-            EndpointAddr = endpointAddr,
-            IncludeRaw = includeRaw
-        };
+        var options = new ClickHouseOptions(endpointAddr, user, key, database, table, application,
+            skipServerCertificateValidation, timeout);
+
         var sink = new ClickHouseSink(options);
+        sink.Initialize();
         var batchingOptions = new BatchingOptions
         {
             BatchSizeLimit = batchSizeLimit, BufferingTimeLimit = period ?? DefaultPeriod, QueueLimit = queueLimit

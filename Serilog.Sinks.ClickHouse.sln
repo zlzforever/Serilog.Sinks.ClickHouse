@@ -6,7 +6,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 				ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 					readme.md = readme.md
+					init.sql = init.sql
 				EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.Clickhouse.Tests", "tests\Serilog.Sinks.Clickhouse.Tests\Serilog.Sinks.Clickhouse.Tests.csproj", "{8E8B56F1-1BE3-4531-854E-074576A82740}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +21,9 @@ Global
 		{419CC76C-7A5D-4647-8E6D-4E6F52F10605}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{419CC76C-7A5D-4647-8E6D-4E6F52F10605}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{419CC76C-7A5D-4647-8E6D-4E6F52F10605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E8B56F1-1BE3-4531-854E-074576A82740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E8B56F1-1BE3-4531-854E-074576A82740}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E8B56F1-1BE3-4531-854E-074576A82740}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E8B56F1-1BE3-4531-854E-074576A82740}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
