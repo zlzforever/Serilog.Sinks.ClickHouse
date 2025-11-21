@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using Serilog.Core;
 using Serilog.Debugging;
@@ -34,17 +35,24 @@ public class ClickHouseSink : IBatchedLogEventSink, IDisposable
             };
     }
 
+
     /// <summary>
     ///
     /// </summary>
     public async Task EmitBatchAsync(IReadOnlyCollection<LogEvent> batch)
     {
-        var bodyBuilder = new StringWriter();
+        var bodyBuilder = new StringBuilder();
 
         foreach (var logEvent in batch)
         {
-            _textFormatter.Format(logEvent, bodyBuilder);
-            await bodyBuilder.WriteAsync(Environment.NewLine);
+            await using var single = new StringWriter();
+            _textFormatter.Format(logEvent, single);
+#if NET6_0_OR_GREATER
+            bodyBuilder.Append(single.GetStringBuilder());
+            bodyBuilder.Append('\n');
+#else
+            bodyBuilder.AppendLine(single.ToString());
+#endif
         }
 
         var json = bodyBuilder.ToString();

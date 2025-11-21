@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
+        <TargetFrameworks>net6;net7;net8;net9;netstandard2.1;</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <AssemblyName>Serilog.Sinks.ClickHouse</AssemblyName>
@@ -21,8 +21,8 @@
         <LangVersion>latest</LangVersion>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageReadmeFile>readme.md</PackageReadmeFile>
-        <Version>1.0.4</Version>
-        <FileVersion>1.0.4</FileVersion>
+        <Version>1.0.5</Version>
+        <FileVersion>1.0.5</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>

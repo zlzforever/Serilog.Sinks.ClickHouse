@@ -14,13 +14,13 @@ public class UnitTest1
     [Fact]
     public void CreateTable()
     {
-        var options = new ClickHouseOptions("http://192.168.100.254:8123", "default", "5%97SP%cYdD*m%", "logs",
+        var options = new ClickHouseOptions("http://10.0.10.190:8123", "default", "", "logs",
             "application_log_test", "Serilog.Sinks.Clickhouse", true);
 
         var sink = new ClickHouseSink(options);
         sink.Initialize();
     }
-    
+
     [Fact]
     public void CreateTableWithEmptyKey()
     {
@@ -92,18 +92,18 @@ public class UnitTest1
                    """;
         using HttpClient httpClient =
             new HttpClient(
-                new DefaultHttpClientHandler("default", "5%97SP%cYdD*m%", "logs", true), false);
+                new DefaultHttpClientHandler("default", "", "logs", true), false);
         httpClient.Timeout = TimeSpan.FromSeconds(30);
         using var request = new HttpRequestMessage(HttpMethod.Post,
-            $"http://192.168.100.254:8123/?query=INSERT+INTO+application_log_test+FORMAT+JSONEachRow");
+            $"http://10.0.10.190:8123/?query=INSERT+INTO+application_log_test+FORMAT+JSONEachRow");
         request.Content = new StringContent(json, Encoding.UTF8, "application/json");
         using var resp = await httpClient.SendAsync(request);
         var result = await resp.Content.ReadAsStringAsync();
         resp.EnsureSuccessStatusCode();
         Assert.Equal("", result);
     }
-    
-        [Fact]
+
+    [Fact]
     public async Task SendToCkWithoutKey()
     {
         var json = """
@@ -128,13 +128,23 @@ public class UnitTest1
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .Enrich.FromLogContext()
-            .WriteTo.ClickHouse("http://192.168.100.254:8123", "logs", "application_log_test", "default",
-                "5%97SP%cYdD*m%", "Serilog.Sinks.Clickhouse", batchSizeLimit: 1)
+            .WriteTo.ClickHouse("http://10.0.10.190:8123", "logs", "application_log_test", "default",
+                "", "Serilog.Sinks.Clickhouse", batchSizeLimit: 3)
             .CreateLogger();
 
+        Log.Logger.Information(Template, Create(1));
+        Log.Logger.Information(Template, Create(2));
+        Log.Logger.Information(Template, Create(3));
+        Log.Logger.Information(Template, Create(4));
+        Log.Logger.Information(Template, Create(5));
+        Thread.Sleep(10000);
+    }
+
+    private object[] Create(int index)
+    {
         var properties = new object[]
         {
-            "Lewis",
+            "Lewis: " + index,
             1.1f,
             2.2d,
             3.3m,
@@ -154,9 +164,7 @@ public class UnitTest1
                 Name = "lewis zou"
             }
         };
-
-        Log.Logger.Information(Template, properties);
-        Thread.Sleep(10000);
+        return properties;
     }
 
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Local")]
